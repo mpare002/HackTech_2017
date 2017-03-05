@@ -14,19 +14,14 @@ Config
     "serverURL": "localhost"
 }
 
-*************
-not used anymore
-*************
+
 User requests to be connected to other user. 
 User chats to bot, to chat with other user
 
 Special cmds:
   "$username:" string after this specifies my username
   "$connect-to" string after this specifies username of who i want to connect to
-  "$felony-fights" sends link to felony fights
-*************
-not used anymore
-*************
+
 
 
  */
@@ -214,6 +209,12 @@ app.get('/test', function(req, res) {
 
 
   res.send("Hello there");
+
+});
+
+
+app.get('/privacy', function(req, res) {
+  res.send("I don't think I store any of your personal information.");
 
 });
 
@@ -541,12 +542,22 @@ var temp_cardNum = "";
 
             // todo
             // send text to number with twilio: stating that pizza has been ordered
-
-
-
+            var accountSid = 'ACe522a5fb7f2809a1fbb32bc84c102484'; 
+            var authToken = '168d783b3ebef33d955c96a341331dbd'; 
+             
+            //require the Twilio module and create a REST client 
+            var client = require('twilio')(accountSid, authToken); 
+             
+            client.messages.create({ 
+                to: temp_phone, 
+                from: "+15087795637", 
+                body: "This is Jeff the Pizza Man(bot)! Your pizza may or may not have been ordered...", 
+            }, function(err, message) { 
+                console.log(message); 
+            });
 
           }
-
+// +15087795637 
 
         }
 
@@ -588,13 +599,13 @@ var temp_cardNum = "";
           // todo: implement with database
           // if(matching_user.length == 0) {
           if(true) {
-            sendTextMessage(senderID, "Hi! Looks like we haven't met before. My name is Jeff, your personal pizza ordering bot.\n\nTo get started, let's get some of your personal info!\n\nPlease don't enter erronious information. I am currently not sophisticated enough to update user records. #hacktech\n\nStart by entering your first name.");
+            sendTextMessage(senderID, "PIZZA TIME!\n\nTo get started, let's get some of your personal info!\n\nPlease don't enter erronious information. I am currently not sophisticated enough to update user records. #hacktech\n\nStart by entering your first name.");
 
           }
           else if(matching_user.length == 1) {
             var first = matching_user[0][first];
 
-            var mesg = "Welcum back " + first;
+            var mesg = "Welcome back " + first;
             sendTextMessage(senderID, mesg);
 
             // Todo implement
@@ -610,16 +621,74 @@ var temp_cardNum = "";
 
         }
 
-        // Create a new user name-
+        // user can see who they are connected to
+        else if(messageText.substring(0,10) == "$cur-conn:") {
+          // check if user has created a username
+          if(senderID in userid_to_username) {
+            if(userid_to_username[senderID] in conversations) {
+              var partner = String(conversations[userid_to_username[senderID]]);
+              var ret_str = "You are currently connected to " + partner;
+              sendTextMessage(senderID, ret_str);
+            }
+            else {
+
+            }
+          }
+          else {
+            sendTextMessage(senderID, "You are not currently connected to anyone.");
+          }
+        }
+
+        // print all available facebook users
+        else if(messageText.substring(0,12) == "$users-dump:") {
+          var users_string = "Current Users:\n";
+
+          for(var user in username_to_userid) {
+            users_string += String(user);
+            users_string += "\n";
+          }
+
+          sendTextMessage(senderID, users_string);
+        }
+
+        // Create a new user name- notice: it is copied below... should encapsulate
         else if(messageText.substring(0,10) == "$username:") {
           console.log("$username:");
 
           var username = messageText.substring(10);
 
           if(username in username_to_userid) {
-            console.log("The username", username, "already exists motherfisher");
-            var error_string = "fish you, the username" + username + "already exists";
+            console.log("The username ", username, " already exists motherfisher");
+            var error_string = "The username" + username + "already exists!";
             sendTextMessage(senderID, error_string);
+          }
+          // this person already has a username
+          else if(senderID in userid_to_username) {
+            sendTextMessage(senderID, "Hello?! You already have a username. (no redos!)");
+          }
+          else {
+            username_to_userid[username] = senderID;
+            userid_to_username[senderID] = username;
+            console.log("username of ", senderID, " set to:", username);
+            var success_string = "Ok, hello " + username;
+            sendTextMessage(senderID, success_string);
+          }
+
+        }
+        // another syntax for creating username - woo hoo copy pasteing code!
+        else if(messageText.substring(0,5) == "I am " || messageText.substring(0,5) == "i am ") {
+          console.log("I am");
+
+          var username = messageText.substring(5);
+
+          if(username in username_to_userid) {
+            console.log("The username", username, "already exists motherfisher");
+            var error_string = "The username" + username + "already exists!";
+            sendTextMessage(senderID, error_string);
+          }
+          // this person already has a username
+          else if(senderID in userid_to_username) {
+            sendTextMessage(senderID, "Hello?! You already have a username. (no redos!)");
           }
           else {
             username_to_userid[username] = senderID;
@@ -628,24 +697,90 @@ var temp_cardNum = "";
             var success_string = "Ok, hello " + username;
             sendTextMessage(senderID, success_string);
           }
-
         }
+
         // Create a connection to another  person
         else if(messageText.substring(0,12) == "$connect-to:") {
           console.log("$connect-to:");
 
+          // Should be able to better fit this into the if-else logic below...
+          var legal_connection = true;
+          if(senderID in userid_to_username) {
+            if(userid_to_username[senderID] in conversations) {
+              // you are already in a conversation. Switching without disconnecting 
+              // would fuck up the stored data.
+              legal_connection = false;
+              sendTextMessage(senderID, "Please disconnect from you current conversation before attempting to message with someone else. ");
+            }
+          }
+          else {
+            legal_connection = false;
+            sendTextMessage(senderID, "Choose a username before attempting to connect with other users." );
+          }
+
           var username_to_connect = messageText.substring(12);
 
           if(username_to_connect in username_to_userid) {
-            var me_username = userid_to_username[senderID];
 
-            // if the person you were trying to connect to was having another conversation,
-            // fish it, he's talking to you now.... todo: probably should change
-            conversations[me_username] = username_to_connect;
-            conversations[username_to_connect] = me_username;
+            // the person u trying to connect to is in conversaion
+            if(username_to_connect in conversations) {
+              var tfti_string = username_to_connect + " is already planning a pizza party with someone else... ouch";
+              sendTextMessage(senderID, tfti_string);
+            }
+            else if(legal_connection) {
+              var me_username = userid_to_username[senderID];
 
-            var success_string = "You are now connected to " + username_to_connect;
-            sendTextMessage(senderID, success_string);
+              conversations[me_username] = username_to_connect;
+              conversations[username_to_connect] = me_username;
+
+              var success_string = "You are now connected to " + username_to_connect;
+              sendTextMessage(senderID, success_string);
+            }
+
+          }
+          else {
+            var error_string = "fish you, the person you are trying to connnect to:" + username_to_connect + "does not exists";
+            sendTextMessage(senderID, error_string);
+          }
+        }
+        // alternate syntax to Create a connection to another  person
+        else if(messageText.substring(0,11) == "connect to ") {
+          console.log("connect to");
+
+          // Should be able to better fit this into the if-else logic below...
+          var legal_connection = true;
+          if(senderID in userid_to_username) {
+            if(userid_to_username[senderID] in conversations) {
+              // you are already in a conversation. Switching without disconnecting 
+              // would fuck up the stored data.
+              legal_connection = false;
+              sendTextMessage(senderID, "Please disconnect from you current conversation before attempting to message with someone else. ");
+            }
+          }
+          else {
+            legal_connection = false;
+            sendTextMessage(senderID, "Choose a username before attempting to connect with other users." );
+          }
+
+          var username_to_connect = messageText.substring(11);
+
+          if(username_to_connect in username_to_userid) {
+
+            // the person u trying to connect to is in conversaion
+            if(username_to_connect in conversations) {
+              var tfti_string = username_to_connect + " is already planning a pizza party with someone else... ouch";
+              sendTextMessage(senderID, tfti_string);
+            }
+            else if(legal_connection) {
+              var me_username = userid_to_username[senderID];
+
+              conversations[me_username] = username_to_connect;
+              conversations[username_to_connect] = me_username;
+
+              var success_string = "You are now connected to " + username_to_connect;
+              sendTextMessage(senderID, success_string);
+            }
+
           }
           else {
             var error_string = "fish you, the person you are trying to connnect to:" + username_to_connect + "does not exists";
@@ -653,6 +788,48 @@ var temp_cardNum = "";
           }
         }
 
+
+        else if(messageText.substring(0,10) == "disconnect" || messageText.substring(0,13) == "disconnect me") {
+          var username = String(userid_to_username[senderID]);
+          if(username in conversations) {
+            var partner = conversations[username];
+            delete conversations[username];
+            delete conversations[partner];
+            var del_str = "Ok, you are no longer speaking with " + partner;
+            sendTextMessage(senderID, del_str);
+          }
+          else {
+            sendTextMessage(senderID, "You are not in a conversation and therefore cannot be disconnected.");
+          }
+        }
+
+        else if(messageText == '$info-dump:') {
+          var u1 = "username_to_userid:\n"
+          for(var username in username_to_userid) {
+            u1 += username;
+            u1 += ' : ';
+            u1 += username_to_userid[username];
+            u1 += '\n';
+          }
+          var u2 = "\nuserid_to_username:\n"
+          for(var userid in userid_to_username) {
+            u2 += userid;
+            u2 += ' : ';
+            u2 += userid_to_username[userid];
+            u2 += '\n';
+          }
+          var cn = "\nconversations:\n"
+          for(var user in conversations) {
+            cn += user;
+            cn += ' : ';
+            cn += conversations[user];
+            cn += '\n';
+          }
+
+          var info_str =  u1 + u2 + cn;
+
+          sendTextMessage(senderID, info_str);
+        }
 
         // This is a normal message sent:
         else {
@@ -663,7 +840,22 @@ var temp_cardNum = "";
 
             console.log("senderID not in userid_to_username");
 
-            var help_string = "To Set up a chat with another facebook messenger user, type the following prompts: \n $username:<your desired username>\n$connect-to:<username of who you want to connect to> \n\n\n or type 'pizza' to order a pizza";
+            var help_string = "Hello! I am Jeff, professional pizza party planner - at " +
+                              "your service. To set up a pizza party planning chat with " + 
+                              "another facebook messenger " +
+                              "user, type the following prompts: "+
+                              "\n\n$username:<your desired username>" +
+                              "\n$connect-to:<username of who you want to connect to>" +
+                              "\n   -or-" +
+                              "\n 'i am <username>' and 'connect to <username>'" +
+                              "\n\n\nto see a list of registered users you can chat with type:" +
+                              "\n\n$users-dump:" +
+                              "\n\n\nto disconnect: type 'disconnect'" +
+                              "\n\n\nTo see who you are currently in conversation with, type:" +
+                              "\n\n$cur-conn:" +
+                              "\n\n\nWhen you have finished planning your party, you can " +
+                              "order your pizzas by simply typing: 'pizza' ";
+
             sendTextMessage(senderID, help_string);
           }
           // If this person is not connected to anyone
@@ -681,7 +873,8 @@ var temp_cardNum = "";
 
             var poop = conversations[userid_to_username[senderID]];
             var send_to_id = username_to_userid[poop];
-            sendTextMessage(send_to_id, messageText);
+            var message_snt = userid_to_username[senderID] + " says: " + messageText;
+            sendTextMessage(send_to_id, message_snt);
 
             // sendTextMessage("ethan.lo.714", "OMG!!");
 

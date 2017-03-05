@@ -6,13 +6,17 @@ Relevant Links:
 
 
 To "deploy"
+- this is in hacktech/HackTech_2017/fb_chat_app/messenger-platform-samples/node directory
 - Make sure everything the config file (default.json) is right
 - run the bot with node.js (the bot is currently configured to run on localhost:5000)
 	node app.js
 - use ngrok to forward localhost to public internet
 	- will have to make sure the webhook url on the FB application dashboard is right, since 
 	  ngrok gives a new url each time.
-- run: mongod
+
+
+
+
 
 
 For microsoft bot framwork"
@@ -22,7 +26,7 @@ For microsoft bot framwork"
 
 
 
-
+mongoDB not implemented
 mongoDB
 - the app uses mongoDB to store user preferences
 - each FB user has a unique "senderID" that we can use as a 'primary key'
