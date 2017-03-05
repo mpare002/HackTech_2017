@@ -1,0 +1,14 @@
+
+
+Relevant Links:
+	FB Bot tutorial: https://developers.facebook.com/docs/messenger-platform/guides/setup
+	FB application admin dashboard: https://developers.facebook.com/apps/755694514585641/review-status/
+
+
+To "deploy"
+- Make sure everything the config file (default.json) is right
+- run the bot with node.js (the bot is currently configured to run on localhost:5000)
+	node app.js
+- use ngrok to forward localhost to public internet
+	- will have to make sure the webhook url on the FB application dashboard is right, since 
+	  ngrok gives a new url each time.
