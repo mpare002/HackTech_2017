@@ -5,11 +5,33 @@
  * This source code is licensed under the license found in the
  * LICENSE file in the root directory of this source tree.
  *
+
+Config
+{
+    "appSecret": "1",
+    "pageAccessToken": "<changes frequently>",
+    "validationToken": "1",
+    "serverURL": "localhost"
+}
+
+*************
+*************
+User requests to be connected to other user. 
+User chats to bot, to chat with other user
+
+Special cmds:
+  "$username:" string after this specifies my username
+  "$connect-to" string after this specifies username of who i want to connect to
+  "$felony-fights" sends link to felony fights
+
+
+
  */
 
 /* jshint node: true, devel: true */
 'use strict';
 
+/* make sure to get all these with npm */
 const 
   bodyParser = require('body-parser'),
   config = require('config'),
@@ -23,6 +45,15 @@ app.set('port', process.env.PORT || 5000);
 app.set('view engine', 'ejs');
 app.use(bodyParser.json({ verify: verifyRequestSignature }));
 app.use(express.static('public'));
+
+
+/* For managing current users and who they are connected to */
+var username_to_userid = {}; // user_name -> user_id
+var userid_to_username = {}; // user_id -> user_name
+// todo; is there a bettter way to do this ^ ?!?!?!
+var conversations = {}; // user_name -> user_name
+
+
 
 /*
  * Be sure to setup your config values before running this code. You can 
@@ -142,6 +173,14 @@ app.get('/authorize', function(req, res) {
   });
 });
 
+
+app.get('/test', function(req, res) {
+
+
+  res.send("Hello there");
+
+});
+
 /*
  * Verify that the callback came from Facebook. Using the App Secret from 
  * the App Dashboard, we can verify the signature that is sent with each 
@@ -216,6 +255,13 @@ function receivedAuthentication(event) {
  * 
  */
 function receivedMessage(event) {
+
+  console.log("\n-----------------\nFUCK YOU MOTHERFUCKER!!!!!!!\n---------------\n");
+
+  console.log("\nevent 'object' \n");
+  console.log(event);
+  console.log("\n\n");
+
   var senderID = event.sender.id;
   var recipientID = event.recipient.id;
   var timeOfMessage = event.timestamp;
@@ -225,10 +271,13 @@ function receivedMessage(event) {
     senderID, recipientID, timeOfMessage);
   console.log(JSON.stringify(message));
 
+
   var isEcho = message.is_echo;
   var messageId = message.mid;
   var appId = message.app_id;
   var metadata = message.metadata;
+
+
 
   // You may get a text or attachment but not both
   var messageText = message.text;
@@ -308,7 +357,108 @@ function receivedMessage(event) {
         break;
 
       default:
-        sendTextMessage(senderID, messageText);
+
+        // /* For managing current users and who they are connected to */
+        // var username_to_userid = {}; // user_name -> user_id
+        // var userid_to_username = {}; // user_id -> user_name
+        // // todo; is there a bettter way to do this ^ ?!?!?!
+        // var conversations = {}; // user_name -> user_name
+
+        // Special cmds:
+        //   "$username:" string after this specifies my username
+        //   "$connect-to:" string after this specifies username of who i want to connect to
+        //   "$felony-fights:" sends link to felony fights
+
+
+
+        console.log("\n-------------\nHandling text message(probably)");
+        console.log(messageText);
+
+        // Create a new user name-
+        if(messageText.substring(0,10) == "$username:") {
+          console.log("$username:");
+
+          var username = messageText.substring(10);
+
+          if(username in username_to_userid) {
+            console.log("The username", username, "already exists motherfucker");
+            var error_string = "FUck you, the username" + username + "already exists";
+            sendTextMessage(senderID, error_string);
+          }
+          else {
+            username_to_userid[username] = senderID;
+            userid_to_username[senderID] = username;
+            console.log("username of", senderID, "set to:", username);
+            var success_string = "Ok, hello " + username;
+            sendTextMessage(senderID, success_string);
+          }
+
+        }
+        // Create a connection to another  person
+        else if(messageText.substring(0,12) == "$connect-to:") {
+          console.log("$connect-to:");
+
+          var username_to_connect = messageText.substring(12);
+
+          if(username_to_connect in username_to_userid) {
+            var me_username = userid_to_username[senderID];
+
+            // if the person you were trying to connect to was having another conversation,
+            // fuck it, he's talking to you now.... todo: probably should change
+            conversations[me_username] = username_to_connect;
+            conversations[username_to_connect] = me_username;
+
+            var success_string = "You are now connected to " + username_to_connect;
+            sendTextMessage(senderID, success_string);
+          }
+          else {
+            var error_string = "FUck you, the person you are trying to connnect to:" + username_to_connect + "does not exists";
+            sendTextMessage(senderID, error_string);
+          }
+        }
+        // Felony fights: 
+        else if(messageText.substring(0,15) == "$felony-fights:") {
+          console.log("feolony fights!!");
+          // todo: send link to felony fights
+        }
+        // This is a normal message sent:
+        else {
+          console.log("other type of message ");
+
+          // If username not defined: send back generic help message
+          if(!(senderID in userid_to_username)) {
+
+            console.log("senderID not in userid_to_username");
+
+            var help_string = "Set up a chat with someone else: \n $username:<your desired username>\n$connect-to:<username of who you want to connect to> ";
+            sendTextMessage(senderID, help_string);
+          }
+          // If this person is not connected to anyone
+          else if(!(userid_to_username[senderID] in conversations)) {
+
+            console.log("senderID's username not in conversations ");
+
+            var help_string = "You need to connect to another user:\n$connect-to:<username of who you want to connect to>";
+            sendTextMessage(senderID, help_string);
+          }
+          // fuckit idk why im checking both conditions again.
+          else if((senderID in userid_to_username) && (userid_to_username[senderID] in conversations)) {
+
+            console.log("fuckit, the motherfucker should be connected to someone else rn. ");
+
+            var poop = conversations[userid_to_username[senderID]];
+            var send_to_id = username_to_userid[poop];
+            sendTextMessage(send_to_id, messageText);
+          }
+          // This case should never happen..
+          else {
+            sendTextMessage(senderID, "what the fuck is going on dawg?!?!??!");
+          }
+
+        }
+
+
+        // sendTextMessage(senderID, messageText);
     }
   } else if (messageAttachments) {
     sendTextMessage(senderID, "Message with attachment received");
