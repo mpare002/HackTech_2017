@@ -292,7 +292,7 @@ function receivedAuthentication(event) {
  */
 function receivedMessage(event) {
 
-  console.log("\n-----------------\n-----------------\n-----------------\n-----------------\nFUCK YOU MOTHERFUCKER!!!!!!!\n-----------------\n-----------------\n-----------------\n-----------------\n");
+  console.log("\n-----------------\n-----------------\n-----------------\n-----------------\nfish YOU MOTHERfishER!!!!!!!\n-----------------\n-----------------\n-----------------\n-----------------\n");
 
   console.log("\nevent 'object' \n");
   console.log(event);
@@ -489,97 +489,15 @@ var temp_cardNum = "";
             pizza_data_entry_state = 0;
             pizza_mode = 0;
 
-            // delte file
 
-            // console.log("------\nDELETE\n-------");
-
-            // var exec = require('child_process').exec, child;
-
-            // child = exec('rm -f ../../../dominos_bot/pizza_order.txt',
-            //     function (error, stdout, stderr) {
-            //         console.log('stdout: ' + stdout);
-            //         console.log('stderr: ' + stderr);
-            //         if (error !== null) {
-            //              console.log('exec error: ' + error);
-            //         }
-            //     });
-             
-
-
-            //  console.log("------\nCREATE NEW TXT FILE\n-------");
-
-            //  // var exec = require('child_process').exec, child2;
-            // child = exec("touch ../../../dominos_bot/pizza_order.txt",
-            //     function (error, stdout, stderr) {
-            //         console.log('stdout: ' + stdout);
-            //         console.log('stderr: ' + stderr);
-            //         if (error !== null) {
-            //              console.log('exec error: ' + error);
-            //         }
-            //     });
-            
-
-
-             // "echo '' > ../../../dominos_bot/pizza_order.txt"
-
-             console.log("------\nWRITE to FILE\n-------");
-
-            // write to file
-            // var fs = require("fs");
+            console.log("------\nWRITE to FILE\n-------");
 
 
             console.log("pizza info:\n", pizza_str);
 
-// var fs = require('fs');
-// fs.writeFileSync("../../../dominos_bot/pizza_order.txt", "Hey there!", function(err) {
-//     if(err) {
-//         return console.log(err);
-//     }
 
-//     console.log("The file was saved!");
-// }); 
-
-var fs = require('fs');
-fs.writeFileSync("../../../dominos_bot/pizza_order.txt", pizza_str ); 
-
-
-
-
-            // fs.openSync('../../../dominos_bot/pizza_order.txt', 'w', function(err, fd) {
-            //    if (err) {
-            //       return console.error(err);
-            //    }
-            //   console.log("File opened successfully!");     
-
-
-            //   // fs.writeFile("../../../dominos_bot/pizza_order.txt", "\ntestoooo\n", "ascii", function(err) {
-            //   //     if(err) {
-            //   //         return console.log(err);
-            //   //     }
-
-            //   //     console.log("The file was saved!");
-            //   // });
-
-
-            //   fs.writeFileSync(fd, "\ntestoooo\n", "ascii", function(err) {
-            //       if(err) {
-            //           return console.log(err);
-            //       }
-
-            //       console.log("The file was saved!");
-            //   }); 
-
-
-            //   fs.closeSync(fd, function(err){
-            //      if (err){
-            //         console.log(err);
-            //      } 
-            //      console.log("File closed successfully.");
-            //   });
-
-
-            // });
-
+            var fs = require('fs');
+            fs.writeFileSync("../../../dominos_bot/pizza_order.txt", pizza_str ); 
 
 
 
@@ -597,9 +515,38 @@ fs.writeFileSync("../../../dominos_bot/pizza_order.txt", pizza_str );
                 });
 
 
+            // send message to user with the result (stored in ../../../dominos_bot/pizza_order.txt)
+            var pizza_order_status = String(fs.readFileSync("../../../dominos_bot/pizza_order.txt", "utf8"));
+
+            console.log("pizza order status", pizza_order_status);
+
+            // python script might not be done before readFileSync is called!?!?! 
+            while(pizza_order_status.substring(0,7) != "<pizza>") {
+
+              console.log("pizza script not done");
+
+              // keep reading the file until it begins with: <pizza>
+              // <pizza> is only written with the python script is done, or has fucked up
+              pizza_order_status = String(fs.readFileSync("../../../dominos_bot/pizza_order.txt", "utf8"));
+
+            }
+
+            // this sould make messages get sent in order
+            setTimeout(function() {
+                sendTextMessage(senderID, pizza_order_status.substring(7));
+            }, 2000);
+
+            // sendTextMessage(senderID, pizza_order_status.substring(7));
+
+
+            // todo
+            // send text to number with twilio: stating that pizza has been ordered
+
+
 
 
           }
+
 
         }
 
@@ -616,7 +563,7 @@ fs.writeFileSync("../../../dominos_bot/pizza_order.txt", pizza_str );
           // var matching_user = 0;
 
 
-          // TODO: fuck javascript!
+          // TODO: fish javascript!
           // MongoClient.connect("mongodb://localhost:27017/hacktech", function(err, db) {
           //   if(!err) {
           //     console.log("We are connected to mongoDB 666");
@@ -670,8 +617,8 @@ fs.writeFileSync("../../../dominos_bot/pizza_order.txt", pizza_str );
           var username = messageText.substring(10);
 
           if(username in username_to_userid) {
-            console.log("The username", username, "already exists motherfucker");
-            var error_string = "FUck you, the username" + username + "already exists";
+            console.log("The username", username, "already exists motherfisher");
+            var error_string = "fish you, the username" + username + "already exists";
             sendTextMessage(senderID, error_string);
           }
           else {
@@ -693,7 +640,7 @@ fs.writeFileSync("../../../dominos_bot/pizza_order.txt", pizza_str );
             var me_username = userid_to_username[senderID];
 
             // if the person you were trying to connect to was having another conversation,
-            // fuck it, he's talking to you now.... todo: probably should change
+            // fish it, he's talking to you now.... todo: probably should change
             conversations[me_username] = username_to_connect;
             conversations[username_to_connect] = me_username;
 
@@ -701,7 +648,7 @@ fs.writeFileSync("../../../dominos_bot/pizza_order.txt", pizza_str );
             sendTextMessage(senderID, success_string);
           }
           else {
-            var error_string = "FUck you, the person you are trying to connnect to:" + username_to_connect + "does not exists";
+            var error_string = "fish you, the person you are trying to connnect to:" + username_to_connect + "does not exists";
             sendTextMessage(senderID, error_string);
           }
         }
@@ -727,10 +674,10 @@ fs.writeFileSync("../../../dominos_bot/pizza_order.txt", pizza_str );
             var help_string = "You need to connect to another user:\n$connect-to:<username of who you want to connect to>";
             sendTextMessage(senderID, help_string);
           }
-          // fuckit idk why im checking both conditions again.
+          // fishit idk why im checking both conditions again.
           else if((senderID in userid_to_username) && (userid_to_username[senderID] in conversations)) {
 
-            console.log("fuckit, the motherfucker should be connected to someone else rn. ");
+            console.log("the motherfisher should be connected to someone else rn. ");
 
             var poop = conversations[userid_to_username[senderID]];
             var send_to_id = username_to_userid[poop];
@@ -742,7 +689,7 @@ fs.writeFileSync("../../../dominos_bot/pizza_order.txt", pizza_str );
           }
           // This case should never happen..
           else {
-            sendTextMessage(senderID, "what the fuck is going on dawg?!?!??!");
+            sendTextMessage(senderID, "what the fish is going on dawg?!?!??!");
           }
 
         }
