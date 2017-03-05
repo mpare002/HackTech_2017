@@ -2,7 +2,8 @@
 from pizzapi import *
 import json
 
-f = open("pizza_order.txt", "r")
+# idk, since im running it throuhg javascript maybe it needs absolute path?! or uses the javascript codes dir as the base dir?
+f = open("/Users/ethanlo1/Documents/projects/hacktech/HackTech_2017/dominos_bot/pizza_order.txt", "r")
 
 firstname = str(f.readline())
 lastname = str(f.readline())

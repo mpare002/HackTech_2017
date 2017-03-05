@@ -15,6 +15,7 @@ Config
 }
 
 *************
+not used anymore
 *************
 User requests to be connected to other user. 
 User chats to bot, to chat with other user
@@ -23,7 +24,9 @@ Special cmds:
   "$username:" string after this specifies my username
   "$connect-to" string after this specifies username of who i want to connect to
   "$felony-fights" sends link to felony fights
-
+*************
+not used anymore
+*************
 
 
  */
@@ -53,6 +56,39 @@ var userid_to_username = {}; // user_id -> user_name
 // todo; is there a bettter way to do this ^ ?!?!?!
 var conversations = {}; // user_name -> user_name
 
+
+// 1 is true
+var pizza_mode = 0;
+
+
+// first, last, email, phoneNumber, streetAddress, state, zip, cardNum
+// 0       1       2      3              4            5      6   7 
+var pizza_data_entry_state = 0; // enum hahah
+global.temp_first = "";
+var temp_last = "";
+var temp_email = "";
+var temp_phone = "";
+var temp_street = "";
+var temp_state = "";
+var temp_zip = "";
+var temp_cardNum = "";
+
+
+
+
+// Connect to mongoDB
+var MongoClient = require('mongodb').MongoClient;
+// Connect to the db
+MongoClient.connect("mongodb://localhost:27017/hacktech", function(err, db) {
+  if(!err) {
+    console.log("We are connected to mongoDB");
+  }
+  else {
+    console.log("Can't connect to mongoDB!!!");
+  }
+
+  db.close()
+});
 
 
 /*
@@ -256,7 +292,7 @@ function receivedAuthentication(event) {
  */
 function receivedMessage(event) {
 
-  console.log("\n-----------------\nFUCK YOU MOTHERFUCKER!!!!!!!\n---------------\n");
+  console.log("\n-----------------\n-----------------\n-----------------\n-----------------\nFUCK YOU MOTHERFUCKER!!!!!!!\n-----------------\n-----------------\n-----------------\n-----------------\n");
 
   console.log("\nevent 'object' \n");
   console.log(event);
@@ -358,24 +394,277 @@ function receivedMessage(event) {
 
       default:
 
-        // /* For managing current users and who they are connected to */
-        // var username_to_userid = {}; // user_name -> user_id
-        // var userid_to_username = {}; // user_id -> user_name
-        // // todo; is there a bettter way to do this ^ ?!?!?!
-        // var conversations = {}; // user_name -> user_name
-
-        // Special cmds:
-        //   "$username:" string after this specifies my username
-        //   "$connect-to:" string after this specifies username of who i want to connect to
-        //   "$felony-fights:" sends link to felony fights
+        // check because this function was being called twice automatically
+        if(messageText == "") {
+          break;
+        }
 
 
 
-        console.log("\n-------------\nHandling text message(probably)");
+        console.log("\n\n-------------\nHandling text message(probably):");
         console.log(messageText);
 
+// first, last, email, phoneNumber, streetAddress, state, zip, cardNum
+// 0       1       2      3              4            5      6   7 
+// var pizza_data_entry_state = 0; // enum hahah
+/*
+var temp_first = "";
+var temp_last = "";
+var temp_email = "";
+var temp_phone = "";
+var temp_street = "";
+var temp_state = "";
+var temp_zip = "";
+var temp_cardNum = "";
+*/        
+        if(messageText.substring(0,6) == "dbdump") {
+          // todo; print all shit from DB
+        }
+
+        if(pizza_mode == 1) {
+          console.log("pizza mode (0 or 1): ", pizza_mode);
+
+          if(pizza_data_entry_state == 0) {
+            console.log("pizza0");
+            console.log(messageText);
+
+            temp_first = messageText;
+
+            console.log(temp_first);
+
+            var next_req = "Ok " +  temp_first + ", what's your last name?";
+            sendTextMessage(senderID, next_req);
+            pizza_data_entry_state = pizza_data_entry_state + 1;
+          }
+          else if(pizza_data_entry_state == 1) {
+            temp_last = messageText;
+            var next_req = "Ok " + temp_first +" " +  temp_last + " what's your email?";
+            sendTextMessage(senderID, next_req);
+            pizza_data_entry_state = pizza_data_entry_state + 1;
+
+          }
+          else if(pizza_data_entry_state == 2) {
+            temp_email = messageText;
+            var next_req = "Ok " + temp_first + " what's your phone number? (numbers only)";
+            sendTextMessage(senderID, next_req);
+            pizza_data_entry_state = pizza_data_entry_state + 1;
+
+          }
+          else if(pizza_data_entry_state == 3) {
+            temp_phone = messageText;
+            var next_req = "Ok " + temp_first  + " what's your street address?";
+            sendTextMessage(senderID, next_req);
+            pizza_data_entry_state = pizza_data_entry_state + 1;
+
+          }
+          else if(pizza_data_entry_state == 4) {
+            temp_street = messageText;
+            var next_req = "Ok " + temp_first + " what state do you live in? eg: CA, AK, MI, ...";
+            sendTextMessage(senderID, next_req);
+            pizza_data_entry_state = pizza_data_entry_state + 1;
+
+          }
+          else if(pizza_data_entry_state == 5) {
+            temp_state = messageText;
+            var next_req = "Ok " + temp_first  + " what's your 5 digit zip code?";
+            sendTextMessage(senderID, next_req);
+            pizza_data_entry_state = pizza_data_entry_state + 1;
+
+          }
+          else if(pizza_data_entry_state == 6) {
+            temp_zip = messageText;
+            var next_req = "Ok " + temp_first  + " what's your credit card number?";
+            sendTextMessage(senderID, next_req);
+            pizza_data_entry_state = pizza_data_entry_state + 1;
+
+          }
+          else if(pizza_data_entry_state == 7) {
+            temp_cardNum = messageText;
+
+            var pizza_str = temp_first+"\n"+temp_last+"\n"+temp_email+"\n"+temp_phone+"\n"+temp_street+"\n"+temp_state+"\n"+temp_zip+"\n"+temp_cardNum+"\n";
+
+
+            var next_req = "wow, I can't believe you gave me your credit card info...\n attempting to order you a pepperoni pizza.\n\nThis is the info you entered:\n"+pizza_str;
+            sendTextMessage(senderID, next_req);
+            pizza_data_entry_state = 0;
+            pizza_mode = 0;
+
+            // delte file
+
+            // console.log("------\nDELETE\n-------");
+
+            // var exec = require('child_process').exec, child;
+
+            // child = exec('rm -f ../../../dominos_bot/pizza_order.txt',
+            //     function (error, stdout, stderr) {
+            //         console.log('stdout: ' + stdout);
+            //         console.log('stderr: ' + stderr);
+            //         if (error !== null) {
+            //              console.log('exec error: ' + error);
+            //         }
+            //     });
+             
+
+
+            //  console.log("------\nCREATE NEW TXT FILE\n-------");
+
+            //  // var exec = require('child_process').exec, child2;
+            // child = exec("touch ../../../dominos_bot/pizza_order.txt",
+            //     function (error, stdout, stderr) {
+            //         console.log('stdout: ' + stdout);
+            //         console.log('stderr: ' + stderr);
+            //         if (error !== null) {
+            //              console.log('exec error: ' + error);
+            //         }
+            //     });
+            
+
+
+             // "echo '' > ../../../dominos_bot/pizza_order.txt"
+
+             console.log("------\nWRITE to FILE\n-------");
+
+            // write to file
+            // var fs = require("fs");
+
+
+            console.log("pizza info:\n", pizza_str);
+
+// var fs = require('fs');
+// fs.writeFileSync("../../../dominos_bot/pizza_order.txt", "Hey there!", function(err) {
+//     if(err) {
+//         return console.log(err);
+//     }
+
+//     console.log("The file was saved!");
+// }); 
+
+var fs = require('fs');
+fs.writeFileSync("../../../dominos_bot/pizza_order.txt", pizza_str ); 
+
+
+
+
+            // fs.openSync('../../../dominos_bot/pizza_order.txt', 'w', function(err, fd) {
+            //    if (err) {
+            //       return console.error(err);
+            //    }
+            //   console.log("File opened successfully!");     
+
+
+            //   // fs.writeFile("../../../dominos_bot/pizza_order.txt", "\ntestoooo\n", "ascii", function(err) {
+            //   //     if(err) {
+            //   //         return console.log(err);
+            //   //     }
+
+            //   //     console.log("The file was saved!");
+            //   // });
+
+
+            //   fs.writeFileSync(fd, "\ntestoooo\n", "ascii", function(err) {
+            //       if(err) {
+            //           return console.log(err);
+            //       }
+
+            //       console.log("The file was saved!");
+            //   }); 
+
+
+            //   fs.closeSync(fd, function(err){
+            //      if (err){
+            //         console.log(err);
+            //      } 
+            //      console.log("File closed successfully.");
+            //   });
+
+
+            // });
+
+
+
+
+            console.log("------\nRUN SCRIPT\n-------");
+
+            var exec = require('child_process').exec, child456;
+
+            child456 = exec('python ../../../dominos_bot/create_user_get_menu.py',
+                function (error, stdout, stderr) {
+                    console.log('stdout: ' + stdout);
+                    console.log('stderr: ' + stderr);
+                    if (error !== null) {
+                         console.log('exec error: ' + error);
+                    }
+                });
+
+
+
+
+          }
+
+        }
+
+        else if(messageText.substring(0,5) == "pizza") {
+          pizza_mode = 1;
+          console.log("Pizza mode activated");
+
+
+
+
+
+          // the collection/table: db.userInfo
+
+          // var matching_user = 0;
+
+
+          // TODO: fuck javascript!
+          // MongoClient.connect("mongodb://localhost:27017/hacktech", function(err, db) {
+          //   if(!err) {
+          //     console.log("We are connected to mongoDB 666");
+
+          //     var collection = db.collection( 'userInfo' );
+
+          //     var matching_user = collection.find({"senderId" : {$exists:true} ,"senderID": senderID}).toArray();
+          //     console.log("database select called. result is...");
+          //     console.log(matching_user.length);
+
+
+          //   }
+          //   else {
+          //     console.log("Can't connect to mongoDB!!!");
+          //   }
+
+          //   db.close()
+          // });
+
+
+
+          // todo: implement with database
+          // if(matching_user.length == 0) {
+          if(true) {
+            sendTextMessage(senderID, "Hi! Looks like we haven't met before. My name is Jeff, your personal pizza ordering bot.\n\nTo get started, let's get some of your personal info!\n\nPlease don't enter erronious information. I am currently not sophisticated enough to update user records. #hacktech\n\nStart by entering your first name.");
+
+          }
+          else if(matching_user.length == 1) {
+            var first = matching_user[0][first];
+
+            var mesg = "Welcum back " + first;
+            sendTextMessage(senderID, mesg);
+
+            // Todo implement
+          }
+          else {
+            // WTF?!
+            // should not happen
+          }
+
+
+          // sendTextMessage(senderID, "");
+
+
+        }
+
         // Create a new user name-
-        if(messageText.substring(0,10) == "$username:") {
+        else if(messageText.substring(0,10) == "$username:") {
           console.log("$username:");
 
           var username = messageText.substring(10);
@@ -416,11 +705,8 @@ function receivedMessage(event) {
             sendTextMessage(senderID, error_string);
           }
         }
-        // Felony fights: 
-        else if(messageText.substring(0,15) == "$felony-fights:") {
-          console.log("feolony fights!!");
-          // todo: send link to felony fights
-        }
+
+
         // This is a normal message sent:
         else {
           console.log("other type of message ");
@@ -430,7 +716,7 @@ function receivedMessage(event) {
 
             console.log("senderID not in userid_to_username");
 
-            var help_string = "Set up a chat with someone else: \n $username:<your desired username>\n$connect-to:<username of who you want to connect to> ";
+            var help_string = "To Set up a chat with another facebook messenger user, type the following prompts: \n $username:<your desired username>\n$connect-to:<username of who you want to connect to> \n\n\n or type 'pizza' to order a pizza";
             sendTextMessage(senderID, help_string);
           }
           // If this person is not connected to anyone
@@ -449,6 +735,10 @@ function receivedMessage(event) {
             var poop = conversations[userid_to_username[senderID]];
             var send_to_id = username_to_userid[poop];
             sendTextMessage(send_to_id, messageText);
+
+            // sendTextMessage("ethan.lo.714", "OMG!!");
+
+            
           }
           // This case should never happen..
           else {
@@ -680,6 +970,10 @@ function sendTextMessage(recipientId, messageText) {
   };
 
   callSendAPI(messageData);
+
+  // // messages were being sent out of order. idk if this fixes it but probably.....?!!?!?!?!?!?... didnt work
+  // setTimeout(function(){/* Look mah! No name! */},3000);
+
 }
 
 /*

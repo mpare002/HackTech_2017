@@ -12,3 +12,22 @@ To "deploy"
 - use ngrok to forward localhost to public internet
 	- will have to make sure the webhook url on the FB application dashboard is right, since 
 	  ngrok gives a new url each time.
+- run: mongod
+
+
+For microsoft bot framwork"
+- app id: 755694514585641
+- appSecret: 8330b4abbc2ffa70cecf53330bbe1891
+- pageAccessToken: EAAKvTNcZAwCkBAOZAIOzzItbk3yVspbhcI2SjmOSr9rDZANbBtFuYbIeut4V7PNoOY0VOhbiYQ3ZC0nFVHtVtz34CcBZBOgZCDZBDZAbhDAz6ZCbMMV2SZCryJRZCPNSPdVt06jKqsa4F8qnjV9ZCwOwbjvRILMfiMOBlsrBIResUArZAhQZDZD
+
+
+
+
+mongoDB
+- the app uses mongoDB to store user preferences
+- each FB user has a unique "senderID" that we can use as a 'primary key'
+	Schemas:
+		userInfo: senderID, first, last, email, phoneNumber, streetAddress, state, zip, cardNum
+		orderHistory: senderID, ...
+
+
